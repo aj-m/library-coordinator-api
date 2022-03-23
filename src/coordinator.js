@@ -1,27 +1,37 @@
 "use strict"
 require('dotenv').config({path: './.env.local'});
-var lodash = require('lodash');
+var { intersection, uniq } = require('lodash');
 var SteamApi = require('steamapi');
 var steam = new SteamApi(process.env.STEAM_API_KEY);
 var devprofile = process.env.DEV_STEAM_URL;
 
 var friendsCache = {};
+//const defaultCallback = (...args) => console.log(args);
 
 const coordinator = {
     devprofile,
-    fetchUserFriends: function(user, cb) {
+    getUserId: function(user, cb) {
+        steam.resolve(user).then(cb)
+    },
+    fetchUserFriends: function(user, cb, nocache=false) {
         steam.resolve(user).then(uid => {
-            if(!friendsCache[uid]) {
-                console.log(`caching ${uid} friends`);
-                steam.getUserFriends(uid)
-                .then(friends => steam.getUserSummary(friends.map(friend => friend.steamID)))
-                .then(summaries => {
-                    friendsCache[uid] = summaries;
+            if(!nocache) {
+                if (!friendsCache[uid]) {
+                    console.log(`caching ${uid} friends`);
+                    steam.getUserFriends(uid)
+                    .then(friends => steam.getUserSummary(friends.map(friend => friend.steamID)))
+                    .then(summaries => {
+                        friendsCache[uid] = summaries;
+                        cb(friendsCache[uid]);
+                    });
+                } else {
+                    console.log(`cached ${uid} hit`);
                     cb(friendsCache[uid]);
-                });
+                }
             } else {
-                console.log(`cached ${uid} hit`);
-                cb(friendsCache[uid]);
+                console.log(`nocache ${uid} hit`)
+                steam.getUserFriends(uid).then(friends => steam.getUserSummary(friends.map(friend => friend.steamID)))
+                .then(summaries => cb(summaries))
             }
         })
         .catch(err => console.log(err));
@@ -34,12 +44,16 @@ const coordinator = {
             cb({ friends: matches, count: matches.length })
         });
     },
+    clearUserFriendsCache: function(cb) {
+        friendsCache = {};
+        cb(Object.keys(friendsCache).length);
+    },
     getIntersectingGames: function(users, cb) {
         Promise.all(users.map(user => steam.resolve(user).then(uid => steam.getUserOwnedGames(uid))))
         .then(libraries => {
             const librariesAsIds = libraries.map(lib => lib.map(game => game.appID));
-            const allMutualGameIds = lodash.intersection(...librariesAsIds);
-            const allMutualGameTitles = lodash.uniq(
+            const allMutualGameIds = intersection(...librariesAsIds);
+            const allMutualGameTitles = uniq(
                 libraries.flat().filter(game => allMutualGameIds.includes(game.appID)).map(game => game.name)
             )
             cb({ titles: allMutualGameTitles, ids: allMutualGameIds });

@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <title>Mutual Steam Games Locator</title>
+    </head>
+    <body>
+        <div id="app">
+            <div id="user-select">
+                <input id="user-url"></input>
+                <!--button onclick="event => setIdText('encoded-user', getIdText('user-url'))">Encode</button-->
+                <button onclick="alert('click!')">Encode</button>
+            </div>
+            <span id="encoded-user"></span>
+        </div>
+    </body>
+    <script type="module">
+        import base62str from "https://cdn.skypack.dev/base62str";
+        const base62 = base62str.createInstance();
+        function getIdText(id) {
+            return document.getElementById(id).innerText;
+        }
+        function setIdText(id, text) {
+            document.getElementById(id).innerText = text;
+        }
+        function encodeString(input) {
+            return base62.encodeStr(input);
+        }
+    </script>
+    <script>
+        const apiRoot = "http://localhost:3000";
+    </script>
+    <style>
+
+    </style>
+</html>

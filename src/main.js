@@ -9,11 +9,12 @@ const users = [
 ];
 
 //coordinator.getIntersectingGames(users, console.log);
-coordinator.getIntersectingGames([devprofile], console.log);
+coordinator.getUserId(devprofile, console.log);
+//coordinator.getIntersectingGames([devprofile], console.log);
 //coordinator.searchForUserFriends(devprofile, 'fr', console.log);
-coordinator.fetchUserFriends(devprofile, friends => {
-    console.log(friends.map(friend => friend.nickname).filter(nick => /dog/gi.test(nick)))
-});
+//coordinator.fetchUserFriends(devprofile, friends => {
+//    console.log(friends.map(friend => friend.nickname).filter(nick => /dog/gi.test(nick)))
+//});
 
 /*
 setTimeout(() => {
