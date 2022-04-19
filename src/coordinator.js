@@ -11,7 +11,10 @@ var friendsCache = {};
 const coordinator = {
     devprofile,
     getUserId: function(user, cb) {
-        steam.resolve(user).then(cb)
+        steam.resolve(user).then(cb);
+    },
+    getUserIds: function(users, cb) {
+        Promise.all(users.map(user => steam.resolve(user))).then(cb);
     },
     fetchUserFriends: function(user, cb, nocache=false) {
         steam.resolve(user).then(uid => {
