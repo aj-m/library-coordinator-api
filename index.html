@@ -6,32 +6,78 @@
         <title>Mutual Steam Games Locator</title>
     </head>
     <body>
+        <template id="user-input-template">
+            <div class="user-input" style="border: 1px solid black">
+                <span>This is a user input element</span>
+                <input class="user"></input>
+            </div>
+        </template>
         <div id="app">
-            <div id="user-select">
+            <div id="user-select" style="border: 1px dashed red">
                 <input id="user-url"></input>
                 <!--button onclick="event => setIdText('encoded-user', getIdText('user-url'))">Encode</button-->
                 <button onclick="alert('click!')">Encode</button>
+                <br />
+                <button onclick="addUserInput()">+</button>
             </div>
-            <span id="encoded-user"></span>
         </div>
+        <script>
+            function addUserInput() {
+                console.log("addUserInput fired");
+                const app = document.getElementById("app");
+                const template = document.getElementById("user-input-template");
+                const newInput = template.content.cloneNode(true);
+                app.appendChild(newInput);
+            }
+        </script>
     </body>
     <script type="module">
-        import base62str from "https://cdn.skypack.dev/base62str";
-        const base62 = base62str.createInstance();
+        //import base62str from "https://cdn.skypack.dev/base62str";
+        //const base62 = base62str.createInstance();
+        function testGetIntersecting() {
+
+        }
+        function getIntersectingGames(resolvables, cb) {
+            const payload = encodeArray(resolvables);
+            fetch(`${apiRoot}/intersecting/${payload}`)
+            .then(intersect => {
+                console.log(intersect);
+                cb(intersect);
+            })
+            .catch(error => console.error(error));
+        }
         function getIdText(id) {
             return document.getElementById(id).innerText;
         }
         function setIdText(id, text) {
             document.getElementById(id).innerText = text;
         }
+        function encodeArray(arr) {
+            return encodeString(JSON.stringify(arr));
+        }
         function encodeString(input) {
-            return base62.encodeStr(input);
+            return encodeURIComponent(atob(input))
+            //return base62.encodeStr(input);
         }
     </script>
     <script>
         const apiRoot = "http://localhost:3000";
     </script>
     <style>
-
+        html {
+            background-image: linear-gradient(to bottom, #D1D5EE 0, #EEF2FF 100vh);
+            background-color: #EEF2FF;
+        }
+        body {
+            border-color: purple;
+            border-width: 2px;
+            border-style: solid;
+        }
+        .user-input {
+            /* background-color: darksalmon; */
+            border-color: black;
+            border-width: 1px;
+            border-style: solid;
+        }
     </style>
 </html>
