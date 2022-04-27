@@ -1,12 +1,65 @@
 "use strict"
-require('dotenv').config({path: './.env.local'});
+//require('dotenv').config({path: './.env.local'});
 var { intersection, uniq } = require('lodash');
 var SteamApi = require('steamapi');
-var steam = new SteamApi(process.env.STEAM_API_KEY);
+//var steam = new SteamApi(process.env.STEAM_API_KEY);
 var devprofile = process.env.DEV_STEAM_URL;
 
 var friendsCache = {};
 //const defaultCallback = (...args) => console.log(args);
+
+class LibraryCoordinator {
+    /**
+     * @param {string} apiKey
+     */
+    constructor(apiKey) {
+        this.key = apiKey;
+        this.steam = new SteamApi(this.key);
+    }
+    /**
+     * @param {resolvable[]} users
+     */
+    getIntersectingGames(users) {
+        const allMutualGameIds = libraries => intersection(libraries.map(library => library.map(game => game.appID)));
+        return this.getUserIds(users).then(ids => Promise.all(ids.map(id => this.steam.getUserOwnedGames(id)))).then(libraries => allMutualGameIds(libraries))
+    }
+    getUserId(user) {
+        return this.steam.resolve(user);
+    }
+    /**
+     * @param {resolvable[]} users
+     */
+    getUserIds(users) {
+        return Promise.all(users.map(user => this.steam.resolve(user)));
+    }
+    /**
+     * @param {resolvable} user
+     */
+    fetchUserFriends(user) {
+        return this.getUserId(user).then(id => this.steam.getUserFriends(id));
+    }
+    /**
+     * @param {resolvable} user
+     */
+    fetchUserFriendIds(user) {
+        return this.fetchUserFriends(user)
+                .then(friends => this.fetchUserSummaries(friends))
+                .then(summaries => summaries.map(summary => summary.steamID));
+    }
+    /**
+     * @param {resolvable[]} users
+     */
+    fetchUserSummaries(users) {
+        return this.getUserIds(users).then(ids => this.steam.getUserSummary(ids))
+    }
+    /**
+     * @param {resolvable} user
+     */
+    fetchUserSummary(user) {
+        const isArr = user instanceof Array
+        return this.fetchUserSummaries(isArr ? user : [user])
+    }
+}
 
 const coordinator = {
     devprofile,
